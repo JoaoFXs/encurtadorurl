@@ -6,6 +6,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.net.InetAddress;
+import java.net.UnknownHostException;
+
 @Service
 public class UrlShortenerService {
 
@@ -27,15 +30,20 @@ public class UrlShortenerService {
      * necessidade de verificar todas as url em busca de uma igual.
      */
     @Transactional
-    public String encurtadorUrl(String longUrl) {
+    public String encurtadorUrl(String longUrl)  {
         UrlMapping urlMapping = new UrlMapping();
         urlMapping.setLongUrl(longUrl);
-
+        InetAddress infoIp;
+        try {
+             infoIp = InetAddress.getLocalHost();
+        } catch (UnknownHostException e) {
+            throw new RuntimeException(e);
+        }
         UrlMapping urlSalva = repository.save(urlMapping);
 
         Long id = urlSalva.getId();
 
-        String shortKey = base62Encode(id + ID_OFFSET);
+        String shortKey =  infoIp.getHostAddress() + "/"+ base62Encode(id + ID_OFFSET);
 
         urlSalva.setShortKey(shortKey);
         repository.save(urlSalva);

@@ -22,7 +22,7 @@ public class UrlMapping {
     @Column(nullable = false, columnDefinition = "TEXT")
     private String longUrl;
 
-    @Column(length = 10, unique = true)
+    @Column(unique = true)
     private String shortKey;
 
     private LocalDateTime dataCriacao;
