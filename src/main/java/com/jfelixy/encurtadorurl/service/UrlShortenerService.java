@@ -5,6 +5,7 @@ import com.jfelixy.encurtadorurl.repository.UrlMappingRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import java.net.InetAddress;
 import java.net.UnknownHostException;
@@ -34,16 +35,14 @@ public class UrlShortenerService {
         UrlMapping urlMapping = new UrlMapping();
         urlMapping.setLongUrl(longUrl);
         InetAddress infoIp;
-        try {
-             infoIp = InetAddress.getLocalHost();
-        } catch (UnknownHostException e) {
-            throw new RuntimeException(e);
-        }
+        /** Captura a atual request e remove o seu path**/
+        ServletUriComponentsBuilder builder = ServletUriComponentsBuilder.fromCurrentRequest();
+        builder.replacePath("");
         UrlMapping urlSalva = repository.save(urlMapping);
 
         Long id = urlSalva.getId();
 
-        String shortKey =  infoIp.getHostAddress() + "/"+ base62Encode(id + ID_OFFSET);
+        String shortKey =  builder.build() + "/"+ base62Encode(id + ID_OFFSET);
 
         urlSalva.setShortKey(shortKey);
         repository.save(urlSalva);
