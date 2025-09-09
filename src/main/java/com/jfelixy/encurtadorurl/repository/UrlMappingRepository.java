@@ -11,6 +11,5 @@ public interface UrlMappingRepository extends JpaRepository<UrlMapping, Long> {
 
     Optional<UrlMapping> findByShortKey(String shortKey);
 
-    boolean existByShortKey(String shortKey);
 
 }

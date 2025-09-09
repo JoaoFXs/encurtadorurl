@@ -4,6 +4,7 @@ import com.jfelixy.encurtadorurl.model.UrlMapping;
 import com.jfelixy.encurtadorurl.repository.UrlMappingRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class UrlShortenerService {
@@ -14,6 +15,9 @@ public class UrlShortenerService {
 
     private static final String BASE62_CHARS = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
 
+
+    private static final long ID_OFFSET = 1_000_000_000L;
+
     /**
      * Salva a Url no banco, depois captura seu id e o codifica em base62, sendo utilizado
      * posteriormente como shortUrl
@@ -22,6 +26,7 @@ public class UrlShortenerService {
      * @return Retorna a url encurtada a partir da transformação do id para base64, o que torna o valor unico, sem
      * necessidade de verificar todas as url em busca de uma igual.
      */
+    @Transactional
     public String encurtadorUrl(String longUrl) {
         UrlMapping urlMapping = new UrlMapping();
         urlMapping.setLongUrl(longUrl);
@@ -29,7 +34,8 @@ public class UrlShortenerService {
         UrlMapping urlSalva = repository.save(urlMapping);
 
         Long id = urlSalva.getId();
-        String shortKey = base62Encode(id);
+
+        String shortKey = base62Encode(id + ID_OFFSET);
 
         urlSalva.setShortKey(shortKey);
         repository.save(urlSalva);
@@ -51,6 +57,11 @@ public class UrlShortenerService {
      * @param number o ID do banco de dados.
      * @return A string codificada em Base62.
      */
+    /**
+     * Converte um número (ID) para sua representação em Base62.
+     * @param number o ID do banco de dados.
+     * @return A string codificada em Base62.
+     */
     private String base62Encode(long number) {
         if (number == 0) {
             return String.valueOf(BASE62_CHARS.charAt(0));
@@ -63,7 +74,7 @@ public class UrlShortenerService {
             number /= 62;
         }
 
-        // O algoritmo constrói a string de trás para frente, então é necessario invertê-la.
+        // O algoritmo constrói a string de trás para frente, então precisamos invertê-la.
         return sb.reverse().toString();
     }
 
