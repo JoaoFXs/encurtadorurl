@@ -7,9 +7,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
-import java.net.InetAddress;
-import java.net.UnknownHostException;
-
 @Service
 public class UrlShortenerService {
 
@@ -33,8 +30,7 @@ public class UrlShortenerService {
     @Transactional
     public String encurtadorUrl(String longUrl)  {
         UrlMapping urlMapping = new UrlMapping();
-        urlMapping.setLongUrl(longUrl);
-        InetAddress infoIp;
+        urlMapping.setLongUrl(formatarUrl(longUrl));
         /** Captura a atual request e remove o seu path**/
         ServletUriComponentsBuilder builder = ServletUriComponentsBuilder.fromCurrentRequest();
         builder.replacePath("");
@@ -56,6 +52,7 @@ public class UrlShortenerService {
      * @return Obtém a url longa através da shortUrl
      */
     public String obterUrlLonga(String urlEncurtada){
+
         return repository.findByShortKey(urlEncurtada)
                 .map(UrlMapping::getLongUrl).orElseThrow(() -> new RuntimeException("Url não encontrada"));
     }
@@ -83,6 +80,22 @@ public class UrlShortenerService {
 
         // O algoritmo constrói a string de trás para frente, então precisamos invertê-la.
         return sb.reverse().toString();
+    }
+
+    /**
+     * Garante que a URL tenha um protocolo (http:// ou https://).
+     * Adiciona "https://" se nenhum protocolo for encontrado.
+     */
+    private String formatarUrl(String url) {
+        if (url == null) {
+            return null;
+        }
+        // Verifica se a URL já começa com http:// ou https://
+        if (!url.toLowerCase().startsWith("http://") && !url.toLowerCase().startsWith("https://")) {
+            // Adiciona https:// por padrão se não tiver protocolo
+            return "https://" + url;
+        }
+        return url;
     }
 
 }
