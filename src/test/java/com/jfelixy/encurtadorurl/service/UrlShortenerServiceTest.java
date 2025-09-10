@@ -1,21 +1,26 @@
 package com.jfelixy.encurtadorurl.service;
 
 
+import com.jfelixy.encurtadorurl.exceptions.FalhaaoPersistirException;
+import com.jfelixy.encurtadorurl.exceptions.UrlNotFoundException;
 import com.jfelixy.encurtadorurl.model.UrlMapping;
 import com.jfelixy.encurtadorurl.repository.UrlMappingRepository;
 import org.aspectj.lang.annotation.Before;
 import org.junit.jupiter.api.*;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
+import org.mockito.stubbing.OngoingStubbing;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
 
 import java.util.Optional;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.when;
 
 @SpringBootTest
 public class UrlShortenerServiceTest {
@@ -87,6 +92,17 @@ public class UrlShortenerServiceTest {
 
     }
 
+    @ParameterizedTest
+    @ValueSource(strings = "http://localhost:8080/dsada")
+    @DisplayName("Validação de Exceção UrlNotFoundException")
+    void testErroUrlNaoEncontrada(String shortUrl){
+        logger.info("Parâmetro de teste: URL encurtada = {}",shortUrl);
 
+        logger.info("Validando tratamento de erro quando a URL encurtada {} não é encontrada no banco de dados", shortUrl);
+        UrlNotFoundException ex = Assertions.assertThrows(UrlNotFoundException.class,() -> urlShortenerService.obterUrlLonga(shortUrl));
+        logger.info("Exceção computada: {}", ex.getMessage());
+        logger.info("VALIDADO: A URL não foi encontrada no banco de dados");
+
+    }
 
 }

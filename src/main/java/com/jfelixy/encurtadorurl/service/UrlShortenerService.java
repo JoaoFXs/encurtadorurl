@@ -1,5 +1,7 @@
 package com.jfelixy.encurtadorurl.service;
 
+import com.jfelixy.encurtadorurl.exceptions.FalhaaoPersistirException;
+import com.jfelixy.encurtadorurl.exceptions.UrlNotFoundException;
 import com.jfelixy.encurtadorurl.model.UrlMapping;
 import com.jfelixy.encurtadorurl.repository.UrlMappingRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -31,17 +33,26 @@ public class UrlShortenerService {
     public String encurtadorUrl(String longUrl)  {
         UrlMapping urlMapping = new UrlMapping();
         urlMapping.setLongUrl(formatarUrl(longUrl));
+        UrlMapping urlSalva;
         /** Captura a atual request e remove o seu path**/
         ServletUriComponentsBuilder builder = ServletUriComponentsBuilder.fromCurrentRequest();
         builder.replacePath("");
-        UrlMapping urlSalva = repository.save(urlMapping);
 
+        try {
+             urlSalva = repository.save(urlMapping);
+        }catch (FalhaaoPersistirException fs){
+            throw new FalhaaoPersistirException(String.format("Falha ao salvar a url %s no banco de dados: " + fs.getMessage(), longUrl));
+        }
         Long id = urlSalva.getId();
 
         String shortKey =  builder.build() + "/"+ base62Encode(id + ID_OFFSET);
 
         urlSalva.setShortKey(shortKey);
-        repository.save(urlSalva);
+        try{
+            repository.save(urlSalva);
+        }catch (FalhaaoPersistirException fs){
+            throw new FalhaaoPersistirException(String.format("Falha ao salvar a url %s no banco de dados: " + fs.getMessage(), shortKey));
+        }
 
         return shortKey;
     }
@@ -54,7 +65,7 @@ public class UrlShortenerService {
     public String obterUrlLonga(String urlEncurtada){
 
         return repository.findByShortKey(urlEncurtada)
-                .map(UrlMapping::getLongUrl).orElseThrow(() -> new RuntimeException("Url não encontrada"));
+                .map(UrlMapping::getLongUrl).orElseThrow(() -> new UrlNotFoundException("Url não encontrada"));
     }
     /**
      * Converte um número (ID) para sua representação em Base62.
