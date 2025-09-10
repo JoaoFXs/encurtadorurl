@@ -19,6 +19,12 @@ public class RedirectController {
     @Autowired
     UrlShortenerService urlShortenerService;
 
+    /**
+     * Controlador para redirecionar a urlencurtada para urlLonga
+     * @param shortUrl
+     * @param response
+     * @throws IOException
+     */
     @GetMapping("/{shortUrl}")
     public void redirecionarParaUrlLonga(@PathVariable String shortUrl, HttpServletResponse response) throws IOException {
         /** Captura a atual request e remove o seu path**/

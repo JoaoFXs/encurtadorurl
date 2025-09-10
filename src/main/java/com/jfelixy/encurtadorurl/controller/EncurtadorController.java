@@ -18,6 +18,11 @@ public class EncurtadorController {
     @Autowired
     UrlShortenerService urlShortenerService;
 
+    /**
+     * Controlador para encurtarUrl
+     * @param url
+     * @return
+     */
     @PostMapping
     public ResponseEntity<String> encurtarUrl(@RequestBody String url){
         String urlEncurtada = urlShortenerService.encurtadorUrl(url);
